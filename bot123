@@ -1,0 +1,43 @@
+import os
+import logging
+import telegram
+from telegram.error import NetworkError, Unauthorized
+from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
+
+# Edite aqui com o token do seu bot obtido do BotFather
+TOKEN = "<SEU_TOKEN_AQUI>"
+
+# Edite aqui com o nome do canal que deseja monitorar (ex: @mychannel)
+CHANNEL_NAME = "@SEU_CANAL_AQUI"
+
+# Edite aqui com o nome do grupo onde as mensagens serão encaminhadas (ex: @mygroup)
+GROUP_NAME = "@SEU_GRUPO_AQUI"
+
+logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+                    level=logging.INFO)
+
+logger = logging.getLogger(__name__)
+
+def main():
+    updater = Updater(TOKEN, use_context=True)
+
+    dp = updater.dispatcher
+
+    def start(update, context):
+        context.bot.send_message(chat_id=update.effective_chat.id, text="Iniciando o bot...")
+
+    def repeat_all_messages(update, context):
+        context.bot.forward_message(chat_id=GROUP_NAME, from_chat_id=CHANNEL_NAME, message_id=update.message.message_id)
+
+    start_handler = CommandHandler('start', start)
+    message_handler = MessageHandler(Filters.channel, repeat_all_messages)
+
+    dp.add_handler(start_handler)
+    dp.add_handler(message_handler)
+
+    updater.start_polling()
+
+    updater.idle()
+
+if __name__ == '__main__':
+    main()
